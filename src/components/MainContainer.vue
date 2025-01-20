@@ -64,12 +64,11 @@ import { useResources } from '../composables/useResources'
 import { usePopulation } from '../composables/usePopulation'
 import { useProduction } from '../composables/useProduction'
 import { useBuildings } from '../composables/useBuildings'
-import { type Building, BuildingType, BuildingStatus } from '../types/buildings'
-import { ResourceType } from '../types/resources'
-import { type Resource } from '../types/resources'
+import { type Building, BuildingType } from '../types/buildings'
 import { useLogs } from '../composables/useLogs'
 import { LogType } from '../types/logs'
 import LogPanel from './LogPanel.vue'
+import { useGameLoop } from '../composables/useGameLoop'
 
 const { resources, updateResource } = useResources()
 const { products, TICK_RATE, LABOR_PER_SECOND } = useProduction()
@@ -84,6 +83,20 @@ const {
 } = useBuildings(products)
 const { population, updatePopulation } = usePopulation(resources, buildings)
 const { logs, addLog, clearLogs } = useLogs()
+
+const { startGameLoop, stopGameLoop } = useGameLoop({
+  buildings,
+  resources,
+  population,
+  TICK_RATE,
+  LABOR_PER_SECOND,
+  isProductionBuilding,
+  getResourceTypeForBuilding,
+  updateResource,
+  updatePopulation,
+  updateConstructionProgress,
+  addLog
+})
 
 const addWorker = (building: Building) => {
   if (isProductionBuilding(building) && 
@@ -125,70 +138,12 @@ const removeWorker = (building: Building) => {
   }
 }
 
-const produceResources = () => {
-  buildings.value.forEach((building: Building) => {
-    if (isProductionBuilding(building) && building.status === BuildingStatus.COMPLETED) {
-      // 基础资源生产
-      const resourceType = getResourceTypeForBuilding(building.type)
-      if (resourceType) {
-        const resource = resources.value.find((r: Resource) => r.type === resourceType)
-        if (resource) {
-          // 避免除以零，当没有工人时不生产
-          const workerRatio = building.maxWorkers > 0 ? building.workers / building.maxWorkers : 0
-          const production = building.productionRate * workerRatio * (TICK_RATE / 1000)
-          resource.amount += production
-        }
-      }
-      
-      // 产品生产
-      if (building.producing) {
-        const laborPerTick = (building.workers * LABOR_PER_SECOND) * (TICK_RATE / 1000)
-        building.currentLabor += laborPerTick
-        
-        if (building.currentLabor >= building.producing.laborRequired) {
-          const canProduce = building.producing.resourceCosts.every(cost => {
-            const resource = resources.value.find((r: Resource) => r.type === cost.type)
-            return resource && resource.amount >= cost.amount
-          })
-          
-          if (canProduce) {
-            // 消耗资源
-            building.producing.resourceCosts.forEach(cost => {
-              updateResource(cost.type, -cost.amount)
-            })
-            
-            // 重置劳动点数
-            building.currentLabor -= building.producing.laborRequired
-            
-            // 添加产品到库存
-            updateResource(ResourceType.IRON_TOOLS, 1)
-          }
-        }
-      }
-    }
-  })
-
-  // 人口消耗食物
-  const food = resources.value.find((r: Resource) => r.type === ResourceType.FOOD)
-  if (food) {
-    food.amount -= population.value.foodConsumption * population.value.total * (TICK_RATE / 1000)
-  }
-}
-
-let productionInterval: number
-let populationInterval: number
-
 onMounted(() => {
-  productionInterval = setInterval(produceResources, TICK_RATE)
-  populationInterval = setInterval(() => {
-    updatePopulation()
-    updateConstructionProgress(TICK_RATE)
-  }, TICK_RATE)
+  startGameLoop()
 })
 
 onUnmounted(() => {
-  clearInterval(productionInterval)
-  clearInterval(populationInterval)
+  stopGameLoop()
 })
 
 const onBuildNewBuilding = (type: BuildingType) => {
@@ -199,9 +154,3 @@ const onBuildNewBuilding = (type: BuildingType) => {
   }
 }
 </script>
-
-<style>
-.progress-bar.no-transition {
-  transition: none !important;
-}
-</style>
