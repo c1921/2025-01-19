@@ -1,3 +1,5 @@
+import type { Character } from './character'
+
 // 人口相关接口
 export interface Population {
   total: number;
@@ -5,4 +7,5 @@ export interface Population {
   available: number;
   growth: number;
   foodConsumption: number;
+  characters: Character[];  // 添加角色列表
 } 

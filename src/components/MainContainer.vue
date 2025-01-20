@@ -3,6 +3,10 @@
     <div class="row">
       <!-- 左侧建筑区域 -->
       <div class="col-md-8">
+        <CharacterTable 
+          :characters="population.characters"
+          :buildings="buildings"
+        />
         <div class="card">
           <div class="card-header">
             <h5 class="card-title mb-0">Buildings</h5>
@@ -52,6 +56,7 @@ import { onMounted, onUnmounted } from 'vue'
 import PopulationPanel from './PopulationPanel.vue'
 import ResourcesPanel from './ResourcesPanel.vue'
 import BuildingCard from './BuildingCard.vue'
+import CharacterTable from './CharacterTable.vue'
 import { useResources } from '../composables/useResources'
 import { usePopulation } from '../composables/usePopulation'
 import { useProduction } from '../composables/useProduction'
@@ -77,17 +82,39 @@ const addWorker = (building: Building) => {
   if (isProductionBuilding(building) && 
       population.value.available > 0 && 
       building.workers < building.maxWorkers) {
-    building.workers++
-    population.value.employed++
-    population.value.available--
+    // 找到一个可用的角色
+    const availableCharacter = population.value.characters.find(
+      char => !char.employed
+    )
+    
+    if (availableCharacter) {
+      building.workers++
+      population.value.employed++
+      population.value.available--
+      
+      // 更新角色状态
+      availableCharacter.employed = true
+      availableCharacter.workplace = building.id
+    }
   }
 }
 
 const removeWorker = (building: Building) => {
   if (isProductionBuilding(building) && building.workers > 0) {
-    building.workers--
-    population.value.employed--
-    population.value.available++
+    // 找到在这个建筑工作的角色
+    const workingCharacter = population.value.characters.find(
+      char => char.workplace === building.id
+    )
+    
+    if (workingCharacter) {
+      building.workers--
+      population.value.employed--
+      population.value.available++
+      
+      // 更新角色状态
+      workingCharacter.employed = false
+      workingCharacter.workplace = undefined
+    }
   }
 }
 
