@@ -1,11 +1,27 @@
 import type { Product } from './resources'
+import { ResourceType } from './resources'
+
+// 建筑成本接口
+export interface BuildingCost {
+  type: ResourceType;
+  amount: number;
+}
+
+// 建筑状态
+export enum BuildingStatus {
+  UNDER_CONSTRUCTION = 'under_construction',
+  COMPLETED = 'completed'
+}
 
 // 建筑基础接口
 export interface BuildingBase {
   id: number;
   name: string;
   type: BuildingType;
-  level: number;
+  costs: BuildingCost[];
+  status: BuildingStatus;  // 添加建筑状态
+  constructionProgress?: number;  // 建造进度（0-100）
+  constructionTime?: number;      // 总建造时间（毫秒）
 }
 
 // 生产类建筑
@@ -48,4 +64,16 @@ export const BuildingCategories: Record<BuildingType, BuildingCategory> = {
 }
 
 // Building 类型现在是两种建筑的联合类型
-export type Building = ProductionBuilding | ResidentialBuilding; 
+export type Building = ProductionBuilding | ResidentialBuilding;
+
+// 在现有类型定义中添加
+export interface BuildingConfig {
+  name: string;
+  costs: BuildingCost[];
+  constructionTime: number;
+  description: string;
+  production?: {
+    type: ResourceType;
+    baseRate: number;
+  };
+} 

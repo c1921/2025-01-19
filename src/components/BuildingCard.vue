@@ -2,7 +2,22 @@
   <div class="card h-100">
     <div class="card-body">
       <h5 class="card-title">{{ building.name }}</h5>
-      <div class="mb-2">Level {{ building.level }}</div>
+
+      <!-- 建造进度 -->
+      <template v-if="building.status === BuildingStatus.UNDER_CONSTRUCTION">
+        <div class="mb-3">
+          <div>Under Construction</div>
+          <div class="progress">
+            <div 
+              class="progress-bar no-transition" 
+              role="progressbar" 
+              :style="{ width: `${building.constructionProgress}%` }"
+            >
+              {{ Math.floor(building.constructionProgress!) }}%
+            </div>
+          </div>
+        </div>
+      </template>
 
       <!-- 住宅建筑信息 -->
       <template v-if="isResidentialBuilding(building)">
@@ -49,13 +64,6 @@
 
       <!-- 建筑控制按钮 -->
       <div class="btn-group">
-        <button 
-          @click="$emit('upgrade')"
-          class="btn btn-success btn-sm"
-        >
-          Upgrade
-        </button>
-        
         <!-- 生产建筑的工人控制按钮 -->
         <template v-if="isProductionBuilding(building)">
           <button 
@@ -79,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Building, BuildingType } from '../types/buildings'
+import { type Building, BuildingType, BuildingStatus } from '../types/buildings'
 import { useBuildings } from '../composables/useBuildings'
 import { useProduction } from '../composables/useProduction'
 
@@ -91,7 +99,6 @@ defineProps<{
 }>()
 
 defineEmits<{
-  (e: 'upgrade'): void
   (e: 'addWorker'): void
   (e: 'removeWorker'): void
 }>()

@@ -29,7 +29,6 @@
               <div class="col-md-6" v-for="building in buildings" :key="building.id">
                 <BuildingCard 
                   :building="building"
-                  @upgrade="onUpgradeBuilding(building)"
                   @add-worker="addWorker(building)"
                   @remove-worker="removeWorker(building)"
                 />
@@ -65,7 +64,7 @@ import { useResources } from '../composables/useResources'
 import { usePopulation } from '../composables/usePopulation'
 import { useProduction } from '../composables/useProduction'
 import { useBuildings } from '../composables/useBuildings'
-import { type Building, BuildingType } from '../types/buildings'
+import { type Building, BuildingType, BuildingStatus } from '../types/buildings'
 import { ResourceType } from '../types/resources'
 import { type Resource } from '../types/resources'
 import { useLogs } from '../composables/useLogs'
@@ -79,11 +78,11 @@ const {
   buildingTypes, 
   getBuildingName, 
   buildNewBuilding, 
-  upgradeBuilding,
   getResourceTypeForBuilding,
-  isProductionBuilding 
+  isProductionBuilding,
+  updateConstructionProgress
 } = useBuildings(products)
-const { population, updatePopulation, assignHousing } = usePopulation(resources, buildings)
+const { population, updatePopulation } = usePopulation(resources, buildings)
 const { logs, addLog, clearLogs } = useLogs()
 
 const addWorker = (building: Building) => {
@@ -128,20 +127,22 @@ const removeWorker = (building: Building) => {
 
 const produceResources = () => {
   buildings.value.forEach((building: Building) => {
-    if (isProductionBuilding(building)) {
+    if (isProductionBuilding(building) && building.status === BuildingStatus.COMPLETED) {
       // 基础资源生产
       const resourceType = getResourceTypeForBuilding(building.type)
       if (resourceType) {
         const resource = resources.value.find((r: Resource) => r.type === resourceType)
         if (resource) {
-          const production = building.productionRate * (building.workers / building.maxWorkers) * (TICK_RATE / 1000)
+          // 避免除以零，当没有工人时不生产
+          const workerRatio = building.maxWorkers > 0 ? building.workers / building.maxWorkers : 0
+          const production = building.productionRate * workerRatio * (TICK_RATE / 1000)
           resource.amount += production
         }
       }
       
       // 产品生产
       if (building.producing) {
-        const laborPerTick = (building.workers * LABOR_PER_SECOND * building.level) * (TICK_RATE / 1000)
+        const laborPerTick = (building.workers * LABOR_PER_SECOND) * (TICK_RATE / 1000)
         building.currentLabor += laborPerTick
         
         if (building.currentLabor >= building.producing.laborRequired) {
@@ -179,7 +180,10 @@ let populationInterval: number
 
 onMounted(() => {
   productionInterval = setInterval(produceResources, TICK_RATE)
-  populationInterval = setInterval(updatePopulation, TICK_RATE)
+  populationInterval = setInterval(() => {
+    updatePopulation()
+    updateConstructionProgress(TICK_RATE)
+  }, TICK_RATE)
 })
 
 onUnmounted(() => {
@@ -188,16 +192,11 @@ onUnmounted(() => {
 })
 
 const onBuildNewBuilding = (type: BuildingType) => {
-  buildNewBuilding(type)
-  assignHousing()
-  addLog(LogType.BUILDING, `Built new ${getBuildingName(type)}`)
-}
-
-const onUpgradeBuilding = (building: Building) => {
-  const oldLevel = building.level
-  upgradeBuilding(building)
-  assignHousing()
-  addLog(LogType.BUILDING, `Upgraded ${building.name} from level ${oldLevel} to ${building.level}`)
+  if (buildNewBuilding(type, resources.value, updateResource)) {
+    addLog(LogType.BUILDING, `Started construction of ${getBuildingName(type)}`)
+  } else {
+    addLog(LogType.SYSTEM, `Cannot afford to build ${getBuildingName(type)}`, true)
+  }
 }
 </script>
 
