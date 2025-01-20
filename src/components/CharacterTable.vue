@@ -65,13 +65,3 @@ const getBuildingName = (buildingId: number): string => {
   return building ? building.name : 'Unknown'
 }
 </script>
-
-<style scoped>
-.table {
-  font-size: 0.9rem;
-}
-
-.badge {
-  font-weight: normal;
-}
-</style> 

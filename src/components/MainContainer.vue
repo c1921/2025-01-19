@@ -46,6 +46,10 @@
           :buildings="buildings"
         />
         <ResourcesPanel :resources="resources" />
+        <LogPanel 
+          :logs="logs" 
+          @clear="clearLogs"
+        />
       </div>
     </div>
   </div>
@@ -64,6 +68,9 @@ import { useBuildings } from '../composables/useBuildings'
 import { type Building, BuildingType } from '../types/buildings'
 import { ResourceType } from '../types/resources'
 import { type Resource } from '../types/resources'
+import { useLogs } from '../composables/useLogs'
+import { LogType } from '../types/logs'
+import LogPanel from './LogPanel.vue'
 
 const { resources, updateResource } = useResources()
 const { products, TICK_RATE, LABOR_PER_SECOND } = useProduction()
@@ -77,12 +84,12 @@ const {
   isProductionBuilding 
 } = useBuildings(products)
 const { population, updatePopulation, assignHousing } = usePopulation(resources, buildings)
+const { logs, addLog, clearLogs } = useLogs()
 
 const addWorker = (building: Building) => {
   if (isProductionBuilding(building) && 
       population.value.available > 0 && 
       building.workers < building.maxWorkers) {
-    // 找到一个可用的角色
     const availableCharacter = population.value.characters.find(
       char => !char.employed
     )
@@ -91,10 +98,11 @@ const addWorker = (building: Building) => {
       building.workers++
       population.value.employed++
       population.value.available--
-      
-      // 更新角色状态
       availableCharacter.employed = true
       availableCharacter.workplace = building.id
+      
+      addLog(LogType.CHARACTER, 
+        `${availableCharacter.name} started working at ${building.name}`)
     }
   }
 }
@@ -182,11 +190,14 @@ onUnmounted(() => {
 const onBuildNewBuilding = (type: BuildingType) => {
   buildNewBuilding(type)
   assignHousing()
+  addLog(LogType.BUILDING, `Built new ${getBuildingName(type)}`)
 }
 
 const onUpgradeBuilding = (building: Building) => {
+  const oldLevel = building.level
   upgradeBuilding(building)
   assignHousing()
+  addLog(LogType.BUILDING, `Upgraded ${building.name} from level ${oldLevel} to ${building.level}`)
 }
 </script>
 
