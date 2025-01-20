@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, computed } from 'vue'
 import PopulationPanel from './PopulationPanel.vue'
 import ResourcesPanel from './ResourcesPanel.vue'
 import BuildingCard from './BuildingCard.vue'
@@ -98,7 +98,10 @@ const {
   currentSpeed,
   updateGameTime, 
   setGameSpeed 
-} = useGameTime(addLog)
+} = useGameTime({
+  addLog,
+  characters: computed(() => population.value.characters)
+})
 
 const { startGameLoop, stopGameLoop } = useGameLoop({
   buildings,
