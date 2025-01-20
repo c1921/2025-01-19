@@ -4,14 +4,18 @@
       <h5 class="card-title mb-0">Resources</h5>
     </div>
     <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-3" v-for="resource in resources" :key="resource.id">
-          <div class="d-flex justify-content-between">
-            <span>{{ resource.name }}:</span>
-            <span>{{ resource.amount.toFixed(1) }}</span>
-          </div>
-        </div>
-      </div>
+      <ul class="list-group">
+        <li 
+          v-for="resource in resources" 
+          :key="resource.id"
+          class="list-group-item d-flex justify-content-between align-items-center"
+        >
+          {{ resource.name }}
+          <span class="badge bg-primary rounded-pill">
+            {{ resource.amount.toFixed(1) }}
+          </span>
+        </li>
+      </ul>
     </div>
   </div>
 </template>

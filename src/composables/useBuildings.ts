@@ -1,5 +1,14 @@
 import { ref, type Ref } from 'vue'
-import { type Building, type Product, BuildingType, ResourceType } from '../types/game'
+import { 
+  type Building, 
+  type Product, 
+  BuildingType, 
+  BuildingCategory, 
+  BuildingCategories,
+  type ProductionBuilding,
+  type ResidentialBuilding,
+  ResourceType 
+} from '../types/game'
 
 export function useBuildings(products: Ref<Product[]>) {
   const buildings = ref<Building[]>([])
@@ -16,24 +25,52 @@ export function useBuildings(products: Ref<Product[]>) {
   }
 
   const buildNewBuilding = (type: BuildingType) => {
-    const building: Building = {
+    const baseBuilding = {
       id: buildings.value.length + 1,
       name: getBuildingName(type),
       type,
       level: 1,
-      productionRate: 1,
-      workers: 0,
-      maxWorkers: 5,
-      currentLabor: 0,
-      producing: type === BuildingType.FACTORY ? products.value[0] : undefined
     }
-    buildings.value.push(building)
+
+    if (BuildingCategories[type] === BuildingCategory.RESIDENTIAL) {
+      const residentialBuilding: ResidentialBuilding = {
+        ...baseBuilding,
+        capacity: 5,    // 初始容纳5人
+        occupied: 0
+      }
+      buildings.value.push(residentialBuilding)
+    } else {
+      const productionBuilding: ProductionBuilding = {
+        ...baseBuilding,
+        productionRate: 1,
+        workers: 0,
+        maxWorkers: 5,
+        currentLabor: 0,
+        producing: type === BuildingType.FACTORY ? products.value[0] : undefined
+      }
+      buildings.value.push(productionBuilding)
+    }
   }
 
   const upgradeBuilding = (building: Building) => {
     building.level++
-    building.productionRate = building.level * 1.5
-    building.maxWorkers = 5 + Math.floor(building.level / 2)
+    
+    if (BuildingCategories[building.type] === BuildingCategory.RESIDENTIAL) {
+      const residential = building as ResidentialBuilding
+      residential.capacity = 5 + Math.floor(building.level * 2)  // 每级增加2个容量
+    } else {
+      const production = building as ProductionBuilding
+      production.productionRate = building.level * 1.5
+      production.maxWorkers = 5 + Math.floor(building.level / 2)
+    }
+  }
+
+  const isProductionBuilding = (building: Building): building is ProductionBuilding => {
+    return BuildingCategories[building.type] === BuildingCategory.PRODUCTION
+  }
+
+  const isResidentialBuilding = (building: Building): building is ResidentialBuilding => {
+    return BuildingCategories[building.type] === BuildingCategory.RESIDENTIAL
   }
 
   const getResourceTypeForBuilding = (buildingType: BuildingType): ResourceType | null => {
@@ -55,6 +92,8 @@ export function useBuildings(products: Ref<Product[]>) {
     getBuildingName,
     buildNewBuilding,
     upgradeBuilding,
-    getResourceTypeForBuilding
+    getResourceTypeForBuilding,
+    isProductionBuilding,
+    isResidentialBuilding
   }
 } 

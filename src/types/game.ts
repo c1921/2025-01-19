@@ -1,15 +1,52 @@
-// 建筑类型
-export interface Building {
+// 建筑基础接口
+export interface BuildingBase {
   id: number;
   name: string;
   type: BuildingType;
   level: number;
+}
+
+// 生产类建筑
+export interface ProductionBuilding extends BuildingBase {
   productionRate: number;
   workers: number;
   maxWorkers: number;
-  currentLabor: number;  // 当前累积的劳动点数
+  currentLabor: number;
   producing?: Product;
 }
+
+// 住宅类建筑
+export interface ResidentialBuilding extends BuildingBase {
+  capacity: number;      // 可容纳人口
+  occupied: number;      // 已入住人口
+}
+
+// 建筑类型枚举
+export enum BuildingType {
+  // 住宅类
+  HOUSE = 'house',
+  // 生产类
+  FARM = 'farm',
+  MINE = 'mine',
+  FACTORY = 'factory'
+}
+
+// 建筑类别
+export enum BuildingCategory {
+  RESIDENTIAL = 'residential',
+  PRODUCTION = 'production'
+}
+
+// 建筑类型映射
+export const BuildingCategories: Record<BuildingType, BuildingCategory> = {
+  [BuildingType.HOUSE]: BuildingCategory.RESIDENTIAL,
+  [BuildingType.FARM]: BuildingCategory.PRODUCTION,
+  [BuildingType.MINE]: BuildingCategory.PRODUCTION,
+  [BuildingType.FACTORY]: BuildingCategory.PRODUCTION,
+}
+
+// Building 类型现在是两种建筑的联合类型
+export type Building = ProductionBuilding | ResidentialBuilding;
 
 // 资源类型
 export interface Resource {
@@ -17,14 +54,6 @@ export interface Resource {
   name: string;
   amount: number;
   type: ResourceType;
-}
-
-// 建筑类型枚举
-export enum BuildingType {
-  HOUSE = 'house',
-  FARM = 'farm',
-  MINE = 'mine',
-  FACTORY = 'factory'
 }
 
 // 资源类型枚举
