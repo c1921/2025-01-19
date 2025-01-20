@@ -1,8 +1,12 @@
 <template>
   <div class="container py-4">
-    <!-- 添加时间显示 -->
-    <div class="mb-4">
-      <h3 class="text-center">{{ gameTime.date }}</h3>
+    <!-- 添加时间显示和速度控制 -->
+    <div class="mb-4 d-flex justify-content-center align-items-center gap-3">
+      <h3 class="mb-0">{{ gameTime.date }}</h3>
+      <SpeedControl 
+        :current-speed="currentSpeed"
+        @speed-change="setGameSpeed"
+      />
     </div>
     <div class="row">
       <!-- 左侧建筑区域 -->
@@ -74,6 +78,7 @@ import { LogType } from '../types/logs'
 import LogPanel from './LogPanel.vue'
 import { useGameLoop } from '../composables/useGameLoop'
 import { useGameTime } from '../composables/useGameTime'
+import SpeedControl from './SpeedControl.vue'
 
 const { resources, updateResource } = useResources()
 const { products, TICK_RATE, LABOR_PER_SECOND } = useProduction()
@@ -88,7 +93,12 @@ const {
 } = useBuildings(products)
 const { population, updatePopulation } = usePopulation(resources, buildings)
 const { logs, addLog, clearLogs } = useLogs()
-const { gameTime, updateGameTime } = useGameTime(addLog)
+const { 
+  gameTime, 
+  currentSpeed,
+  updateGameTime, 
+  setGameSpeed 
+} = useGameTime(addLog)
 
 const { startGameLoop, stopGameLoop } = useGameLoop({
   buildings,
@@ -101,7 +111,8 @@ const { startGameLoop, stopGameLoop } = useGameLoop({
   updateResource,
   updatePopulation,
   updateConstructionProgress,
-  updateGameTime
+  updateGameTime,
+  currentSpeed
 })
 
 const addWorker = (building: Building) => {

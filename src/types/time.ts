@@ -15,4 +15,19 @@ export function calculateGameDate(startDate: string, days: number): string {
   const date = new Date(startDate)
   date.setDate(date.getDate() + days)
   return date.toISOString().split('T')[0]
+}
+
+// 添加速度枚举
+export enum GameSpeed {
+  PAUSED = 0,
+  NORMAL = 1,
+  FAST = 2,
+  VERY_FAST = 4
+}
+
+export const SPEED_LABELS: Record<GameSpeed, string> = {
+  [GameSpeed.PAUSED]: '暂停',
+  [GameSpeed.NORMAL]: '正常',
+  [GameSpeed.FAST]: '快速',
+  [GameSpeed.VERY_FAST]: '极速'
 } 

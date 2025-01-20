@@ -7,6 +7,7 @@ import {
 } from '../types/buildings'
 import { type Resource, ResourceType, type ResourceCost } from '../types/resources'
 import { type Population } from '../types/population'
+import { GameSpeed } from '../types/time'
 
 interface GameLoopDependencies {
   buildings: Ref<Building[]>
@@ -20,6 +21,7 @@ interface GameLoopDependencies {
   updatePopulation: () => void
   updateConstructionProgress: (tickRate: number) => void
   updateGameTime: (tickRate: number) => void
+  currentSpeed: Ref<GameSpeed>
 }
 
 export function useGameLoop({
@@ -33,10 +35,17 @@ export function useGameLoop({
   updateResource,
   updatePopulation,
   updateConstructionProgress,
-  updateGameTime
+  updateGameTime,
+  currentSpeed
 }: GameLoopDependencies) {
   
+  const getAdjustedTickRate = (baseTickRate: number) => {
+    return baseTickRate * currentSpeed.value
+  }
+
   const produceResources = () => {
+    if (currentSpeed.value === GameSpeed.PAUSED) return
+
     buildings.value.forEach((building: Building) => {
       if (isProductionBuilding(building) && building.status === BuildingStatus.COMPLETED) {
         // 基础资源生产
@@ -45,14 +54,14 @@ export function useGameLoop({
           const resource = resources.value.find((r: Resource) => r.type === resourceType)
           if (resource) {
             const workerRatio = building.maxWorkers > 0 ? building.workers / building.maxWorkers : 0
-            const production = building.productionRate * workerRatio * (TICK_RATE / 1000)
+            const production = building.productionRate * workerRatio * (getAdjustedTickRate(TICK_RATE) / 1000)
             resource.amount += production
           }
         }
         
         // 产品生产
         if (building.producing) {
-          const laborPerTick = (building.workers * LABOR_PER_SECOND) * (TICK_RATE / 1000)
+          const laborPerTick = (building.workers * LABOR_PER_SECOND) * (getAdjustedTickRate(TICK_RATE) / 1000)
           building.currentLabor += laborPerTick
           
           if (building.currentLabor >= building.producing.laborRequired) {
@@ -81,7 +90,7 @@ export function useGameLoop({
     // 人口消耗食物
     const food = resources.value.find((r: Resource) => r.type === ResourceType.FOOD)
     if (food) {
-      food.amount -= population.value.foodConsumption * population.value.total * (TICK_RATE / 1000)
+      food.amount -= population.value.foodConsumption * population.value.total * (getAdjustedTickRate(TICK_RATE) / 1000)
     }
   }
 
@@ -91,8 +100,9 @@ export function useGameLoop({
   const startGameLoop = () => {
     productionInterval = setInterval(produceResources, TICK_RATE)
     populationInterval = setInterval(() => {
+      if (currentSpeed.value === GameSpeed.PAUSED) return
       updatePopulation()
-      updateConstructionProgress(TICK_RATE)
+      updateConstructionProgress(getAdjustedTickRate(TICK_RATE))
       updateGameTime(TICK_RATE)
     }, TICK_RATE)
   }
