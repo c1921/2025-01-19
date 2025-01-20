@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { type Resource, ResourceType } from '../types/game'
+import { type Resource, ResourceType } from '../types/resources'
 
 export function useResources() {
   const resources = ref<Resource[]>([

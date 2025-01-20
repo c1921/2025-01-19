@@ -1,14 +1,14 @@
 import { ref, type Ref } from 'vue'
 import { 
   type Building, 
-  type Product, 
+  type ProductionBuilding,
+  type ResidentialBuilding,
   BuildingType, 
   BuildingCategory, 
   BuildingCategories,
-  type ProductionBuilding,
-  type ResidentialBuilding,
-  ResourceType 
-} from '../types/game'
+} from '../types/buildings'
+import { ResourceType } from '../types/resources'
+import { type Product } from '../types/products'
 
 export function useBuildings(products: Ref<Product[]>) {
   const buildings = ref<Building[]>([])
@@ -17,7 +17,7 @@ export function useBuildings(products: Ref<Product[]>) {
   const getBuildingName = (type: BuildingType): string => {
     const names = {
       [BuildingType.HOUSE]: 'House',
-      [BuildingType.FARM]: 'Farm',
+      [BuildingType.GATHERER]: 'Gathere\'s Hut',
       [BuildingType.MINE]: 'Mine',
       [BuildingType.FACTORY]: 'Factory'
     }
@@ -75,7 +75,7 @@ export function useBuildings(products: Ref<Product[]>) {
 
   const getResourceTypeForBuilding = (buildingType: BuildingType): ResourceType | null => {
     switch (buildingType) {
-      case BuildingType.FARM:
+      case BuildingType.GATHERER:
         return ResourceType.FOOD
       case BuildingType.MINE:
         return ResourceType.IRON

@@ -13,7 +13,13 @@
 
       <!-- 生产建筑信息 -->
       <template v-else-if="isProductionBuilding(building)">
-        <div class="mb-2">Production Rate: {{ building.productionRate.toFixed(1) }}/s</div>
+        <div class="mb-2">
+          <!-- 可以添加特定的建筑描述 -->
+          <div v-if="building.type === BuildingType.GATHERER" class="small text-muted mb-1">
+            Gathers food from the surrounding area
+          </div>
+          Production Rate: {{ building.productionRate.toFixed(1) }}/s
+        </div>
         <div class="mb-3">
           Workers: {{ building.workers }}/{{ building.maxWorkers }}
         </div>
@@ -73,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Building } from '../types/game'
+import { type Building, BuildingType } from '../types/buildings'
 import { useBuildings } from '../composables/useBuildings'
 import { useProduction } from '../composables/useProduction'
 

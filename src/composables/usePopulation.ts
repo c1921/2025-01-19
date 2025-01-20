@@ -1,5 +1,7 @@
 import { ref, type Ref } from 'vue'
-import { type Population, type Resource, type Building, ResourceType } from '../types/game'
+import { type Population } from '../types/population'
+import { type Resource, ResourceType } from '../types/resources'
+import { type Building } from '../types/buildings'
 import { useBuildings } from './useBuildings'
 
 export function usePopulation(resources: Ref<Resource[]>, buildings: Ref<Building[]>) {

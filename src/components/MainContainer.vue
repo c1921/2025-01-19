@@ -56,7 +56,9 @@ import { useResources } from '../composables/useResources'
 import { usePopulation } from '../composables/usePopulation'
 import { useProduction } from '../composables/useProduction'
 import { useBuildings } from '../composables/useBuildings'
-import { type Building, BuildingType, ResourceType, type Resource } from '../types/game'
+import { type Building, BuildingType } from '../types/buildings'
+import { ResourceType } from '../types/resources'
+import { type Resource } from '../types/resources'
 
 const { resources, updateResource } = useResources()
 const { products, TICK_RATE, LABOR_PER_SECOND } = useProduction()

@@ -31,7 +31,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { type Population, type Building } from '../types/game'
+import { type Population } from '../types/population'
+import { type Building } from '../types/buildings'
 import { useBuildings } from '../composables/useBuildings'
 import { useProduction } from '../composables/useProduction'
 
