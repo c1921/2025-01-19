@@ -1,5 +1,9 @@
 <template>
   <div class="container py-4">
+    <!-- 添加时间显示 -->
+    <div class="mb-4">
+      <h3 class="text-center">{{ gameTime.date }}</h3>
+    </div>
     <div class="row">
       <!-- 左侧建筑区域 -->
       <div class="col-md-8">
@@ -69,6 +73,7 @@ import { useLogs } from '../composables/useLogs'
 import { LogType } from '../types/logs'
 import LogPanel from './LogPanel.vue'
 import { useGameLoop } from '../composables/useGameLoop'
+import { useGameTime } from '../composables/useGameTime'
 
 const { resources, updateResource } = useResources()
 const { products, TICK_RATE, LABOR_PER_SECOND } = useProduction()
@@ -83,6 +88,7 @@ const {
 } = useBuildings(products)
 const { population, updatePopulation } = usePopulation(resources, buildings)
 const { logs, addLog, clearLogs } = useLogs()
+const { gameTime, updateGameTime } = useGameTime(addLog)
 
 const { startGameLoop, stopGameLoop } = useGameLoop({
   buildings,
@@ -95,7 +101,7 @@ const { startGameLoop, stopGameLoop } = useGameLoop({
   updateResource,
   updatePopulation,
   updateConstructionProgress,
-  addLog
+  updateGameTime
 })
 
 const addWorker = (building: Building) => {

@@ -7,7 +7,6 @@ import {
 } from '../types/buildings'
 import { type Resource, ResourceType, type ResourceCost } from '../types/resources'
 import { type Population } from '../types/population'
-import { LogType } from '../types/logs'
 
 interface GameLoopDependencies {
   buildings: Ref<Building[]>
@@ -20,7 +19,7 @@ interface GameLoopDependencies {
   updateResource: (type: ResourceType, amount: number) => void
   updatePopulation: () => void
   updateConstructionProgress: (tickRate: number) => void
-  addLog: (type: LogType, message: string, important?: boolean) => void
+  updateGameTime: (tickRate: number) => void
 }
 
 export function useGameLoop({
@@ -33,7 +32,9 @@ export function useGameLoop({
   getResourceTypeForBuilding,
   updateResource,
   updatePopulation,
-  updateConstructionProgress}: GameLoopDependencies) {
+  updateConstructionProgress,
+  updateGameTime
+}: GameLoopDependencies) {
   
   const produceResources = () => {
     buildings.value.forEach((building: Building) => {
@@ -92,6 +93,7 @@ export function useGameLoop({
     populationInterval = setInterval(() => {
       updatePopulation()
       updateConstructionProgress(TICK_RATE)
+      updateGameTime(TICK_RATE)
     }, TICK_RATE)
   }
 
