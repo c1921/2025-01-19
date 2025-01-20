@@ -7,8 +7,7 @@ import {
   BuildingCategory, 
   BuildingCategories,
 } from '../types/buildings'
-import { ResourceType } from '../types/resources'
-import { type Product } from '../types/products'
+import { ResourceType, type Product } from '../types/resources'
 
 export function useBuildings(products: Ref<Product[]>) {
   const buildings = ref<Building[]>([])
